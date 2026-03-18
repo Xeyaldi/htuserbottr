@@ -261,7 +261,7 @@ async def run():
         if app.is_connected: await app.stop()
         if bot.is_connected: await bot.stop()
 
-  @app.on_message(filters.command("yardim", prefixes=".") & filters.me)
+@app.on_message(filters.command("yardim", prefixes=".") & filters.me)
 async def help_menu(client, message):
     try:
         results = await client.get_inline_bot_results(bot.me.username, "menu")
@@ -516,7 +516,6 @@ import re
 logging.getLogger("pyrogram").setLevel(logging.ERROR)
 logging.getLogger("pyrogram.session.messenger").setLevel(logging.CRITICAL)
 
-# --- DİNAMİK MODÜL YÜKLEYİCİ (RESTARTSİZ) ---
 @app.on_message(filters.command("pluginyukle", prefixes=".") & filters.me)
 async def dynamic_plugin_installer(client, message):
     if not message.reply_to_message or not message.reply_to_message.document:
@@ -533,10 +532,9 @@ async def dynamic_plugin_installer(client, message):
     await message.edit(f"📥 **{doc.file_name}** analiz ediliyor...")
 
     try:
-        # 1. Dosyayı indir
+
         await message.reply_to_message.download(file_name=plugin_path)
         
-        # 2. Komutları ve "# İzah:" yazılan açıklamaları bul
         cmd_info = []
         with open(plugin_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
@@ -579,7 +577,6 @@ async def dynamic_plugin_installer(client, message):
     except Exception as e:
         await message.edit(f"❌ **Modül yüklenemedi:** `{e}`")
 
-# --- SİSTEMİ BAŞLATAN ANA FONKSİYON ---
 async def run():
     try:
         # Botları başlat
