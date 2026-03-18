@@ -429,3 +429,82 @@ async def yazi(client, message):
     font = metn.replace('a', 'α').replace('e', 'є').replace('i', 'ι')
     await message.edit(f"✨ {font}")
                            
+@app.on_message(filters.command("ses", prefixes=".") & filters.me)
+async def ses(client, message):
+    args = message.command
+    lang = "tr"
+    text = ""
+
+    supported_langs = {
+        "tr": "tr", "az": "az", "en": "en", 
+        "fr": "fr", "es": "es", "zh": "zh-CN", 
+        "ja": "ja", "ko": "ko"
+    }
+
+    if len(args) > 1 and args[1].lower() in supported_langs:
+        lang = supported_langs[args[1].lower()]
+        if len(args) > 2:
+            text = " ".join(args[2:])
+    elif len(args) > 1:
+        text = " ".join(args[1:])
+
+    if message.reply_to_message:
+        reply_text = message.reply_to_message.text or message.reply_to_message.caption
+        if reply_text:
+            if not text:
+                await message.edit(f"🌐 `{lang}` diline tercüme ediliyor ve seslendiriliyor...")
+                text = GoogleTranslator(source='auto', target=lang).translate(reply_text)
+
+    if not text: 
+        return await message.edit("❌ Metin girin veya bir mesajı yanıtlayın. Örnek: `.ses en Hello` veya `.ses fr [reply]`")
+    
+    await message.edit("🎙 **Ses işleniyor...**")
+    
+    try:
+        tts = gTTS(text=text, lang=lang)
+        tts.save("voice.mp3")
+        
+        await client.send_voice(
+            chat_id=message.chat.id, 
+            voice="voice.mp3",
+            caption=f"📝 **Çeviri/Metin:** {text[:100]}...",
+            reply_to_message_id=message.reply_to_message.id if message.reply_to_message else None
+        )
+        await message.delete() 
+    except Exception as e:
+        await message.edit(f"❌ Hata: {e}")
+    finally:
+        if os.path.exists("voice.mp3"): os.remove("voice.mp3")
+
+
+@app.on_message(filters.incoming & filters.text & ~filters.me)
+async def dl_handler(client, message):
+    if any(x in message.text for x in ["instagram.com", "tiktok.com", "youtube.com"]):
+        try:
+            if not os.path.exists("downloads"): os.makedirs("downloads")
+            path = f"downloads/{message.id}.mp4"
+            with yt_dlp.YoutubeDL({'format': 'best', 'outtmpl': path, 'quiet': True}) as ydl: 
+                ydl.download([message.text])
+            await message.reply_video(path, caption=f"ᎻᎢ ᏌᏚᎬᎡᏴOᎢ 🗿\n{KANAL_USER}")
+            if os.path.exists(path): os.remove(path)
+        except Exception: 
+            pass 
+
+@app.on_message(filters.command("saat", prefixes=".") & filters.me)
+async def saat(client, message):
+    for _ in range(5):
+        await message.edit(f"🕒 **Saat:** `{time.strftime('%H:%M:%S')}`")
+        await asyncio.sleep(1)
+
+@app.on_message(filters.command("ters", prefixes=".") & filters.me)
+async def ters(client, message):
+    text = message.reply_to_message.text if message.reply_to_message else (message.text.split(None, 1)[1] if len(message.command) > 1 else None)
+    if text: 
+        await message.edit(text[::-1])
+
+@app.on_message(filters.command("del", prefixes=".") & filters.me)
+async def delete_msg(client, message):
+    if message.reply_to_message:
+        await message.reply_to_message.delete()
+        await message.delete()
+                        
