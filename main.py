@@ -508,3 +508,107 @@ async def delete_msg(client, message):
         await message.reply_to_message.delete()
         await message.delete()
                         
+import logging
+import importlib.util
+import re
+
+# Pyrogram-ın bezdirici daxili xətalarını (Peer ID və s.) loqlardan tamamilə silirik
+logging.getLogger("pyrogram").setLevel(logging.ERROR)
+logging.getLogger("pyrogram.session.messenger").setLevel(logging.CRITICAL)
+
+# --- DİNAMİK MODÜL YÜKLEYİCİ (RESTARTSİZ) ---
+@app.on_message(filters.command("pluginyukle", prefixes=".") & filters.me)
+async def dynamic_plugin_installer(client, message):
+    if not message.reply_to_message or not message.reply_to_message.document:
+        return await message.edit("❌ **Hata:** Bir `.py` dosyasına yanıt verin.")
+
+    doc = message.reply_to_message.document
+    if not doc.file_name.endswith(".py"):
+        return await message.edit("❌ **Hata:** Sadece `.py` dosyası yüklenebilir.")
+
+    if not os.path.exists("plugins"): os.makedirs("plugins")
+    plugin_name = doc.file_name.replace(".py", "")
+    plugin_path = os.path.join("plugins", doc.file_name)
+
+    await message.edit(f"📥 **{doc.file_name}** analiz ediliyor...")
+
+    try:
+        # 1. Dosyayı indir
+        await message.reply_to_message.download(file_name=plugin_path)
+        
+        # 2. Komutları ve "# İzah:" yazılan açıklamaları bul
+        cmd_info = []
+        with open(plugin_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+            for i, line in enumerate(lines):
+                # Kodun içindeki command("...") kısmını bulur
+                match = re.search(r'command\(\"([^"]+)\"', line)
+                if match:
+                    cmd = match.group(1)
+                    comment = "Açıklama yok."
+                    # Eğer bir üst satırda "# İzah:" varsa onu açıklama olarak alır
+                    if i > 0 and "# İzah:" in lines[i-1]:
+                        comment = lines[i-1].split("# İzah:")[1].strip()
+                    
+                    cmd_info.append(f"• `.{cmd}` - {comment}")
+                    # Global yardım menüsüne (COMMAND_DETAILS) ekle
+                    COMMAND_DETAILS[cmd] = comment
+        
+        cmd_text = "\n".join(cmd_info) if cmd_info else "• _Otomatik modül._"
+
+        # 3. Kodu botu kapatmadan aktif et (Dinamik Import)
+        spec = importlib.util.spec_from_file_location(plugin_name, plugin_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        
+        # 4. Modülün içindeki komutları (handlers) Pyrogram'a tanıt
+        for attr in dir(module):
+            val = getattr(module, attr)
+            if hasattr(val, "handlers"):
+                for handler, group in val.handlers:
+                    app.add_handler(handler, group)
+
+        # 5. Başarılı mesajı (Restart gerektirmez)
+        await message.edit(
+            f"✅ **HT USERBOT - YENİ MODÜL**\n\n"
+            f"📦 **Dosya:** `{doc.file_name}`\n"
+            f"🛠 **Komutlar:**\n{cmd_text}\n\n"
+            f"✨ *Modül başarıyla aktif edildi.*"
+        )
+
+    except Exception as e:
+        await message.edit(f"❌ **Modül yüklenemedi:** `{e}`")
+
+# --- SİSTEMİ BAŞLATAN ANA FONKSİYON ---
+async def run():
+    try:
+        # Botları başlat
+        await app.start()
+        await bot.start()
+        
+        # Kayıtlı eklentileri MongoDB'den/Dosyadan yükle
+        try:
+            await load_stored_plugins()
+        except Exception:
+            pass
+        
+        print("✅ HT USERBOT ÇEVRİMİÇİ")
+        await idle()
+    except (KeyboardInterrupt, SystemExit):
+        pass
+    except Exception as e:
+        print(f"Kritik hata: {e}")
+    finally:
+        # Kapanışta gereksiz log kalabalığını önle
+        try:
+            if app.is_connected: await app.stop()
+            if bot.is_connected: await bot.stop()
+        except:
+            pass
+
+if __name__ == "__main__":
+    # İndirmeler için klasör kontrolü
+    if not os.path.exists("downloads"): os.makedirs("downloads")
+    
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
