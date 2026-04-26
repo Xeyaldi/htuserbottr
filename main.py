@@ -326,10 +326,10 @@ async def callback_handler(client, callback_query):
     elif data == "close_m":
         await callback_query.message.delete()
 
-@app.on_message(filters.command("canli", prefixes=".") & filters.me)
+@app.on_message(filters.command("htlive", prefixes=".") & filters.me)
 async def htlive(client, message):
     res = client.me
-    font_text = f"ᎻᎢ ᏌᏚᎬᎡᏴOᎢ [{res.first_name}](tg://user?id={res.id}) için aktiftir"
+    font_text = f"ᎻᎢ ᏌᏚᎬᎡᏴOᎢ [{res.first_name}](tg://user?id={res.id}) **imperatoriçe** için aktiftir"
     await message.edit(f"🚀 {font_text}")
 
 @app.on_message(filters.command("filter", prefixes=".") & filters.me)
