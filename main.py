@@ -23,11 +23,12 @@ from gtts import gTTS
 import builtins
 from pyrogram.enums import ParseMode
 
-API_ID = int(os.environ.get("API_ID"))
-API_HASH = os.environ.get("API_HASH")
-SESSION = os.environ.get("SESSION_STRING")
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-MONGO_URL = os.environ.get("MONGO_URL")
+# Heroku üçün olan os.environ hissəsini sildim, birbaşa məlumatlarını yazdım.
+API_ID = 34628590
+API_HASH = "78a65ef180771575a50fcd350f027e9d"
+SESSION = "AQIQY-4AAaVUR-dEOAPj85dXsUlIEN3sKZwpB_KSoOOysQv4qyDsHdrSbgowqSrt8fQ36G1-P0ANAqIEFfbYpSI1C9aIQQw8BTvBe7XIWNkzPwzsBBaLyYxl6h0saRY_XTDI4e-i_VPOMwxve4XuWmYY4pMve7gFCUfWRZAwInCBWtLKNvO2cgps4V2_0Ygy3c9qDLAAL-7D5AikTr09jNd-iXBlITUul3S-YYvBMTWTHrkdseGGHD6EqtA7D7zmQRHvdnWSY6tnC0eKbKZB44aZFG9-fAVE6qLyeUxjv9MQCNblJKPARD8K7VI1ugpVVFrHGge8_ycW2c5BFZ6b-5fUOnAjLwAAAAH2o3DGAA"
+BOT_TOKEN = "8774962321:AAEf3uBTZOp3RyEkuG4hEb8ZdGKgA-phABY"
+MONGO_URL = "mongodb+srv://cabbarovxeyal32_db_user:Xeyal032aze@cluster0.f3gogmg.mongodb.net/?appName=Cluster0"
 
 HELP_IMG = "https://files.catbox.moe/34xlvu.jpg" 
 KANAL_URL = "https://t.me/ht_bots"
