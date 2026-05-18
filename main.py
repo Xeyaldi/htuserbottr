@@ -330,7 +330,7 @@ async def callback_handler(client, callback_query):
 @app.on_message(filters.command("htlive", prefixes=".") & filters.me)
 async def htlive(client, message):
     res = client.me
-    font_text = f"ᎻᎢ ᏌᏚᎬᎡᏴOᎢ [{res.first_name}](tg://user?id={res.id}) **imperatoriçe** için aktiftir"
+    font_text = f"ᎻᎢ ᏌᏚᎬᎡᏴOᎢ [{res.first_name}](tg://user?id={res.id}) için aktiftir"
     await message.edit(f"🚀 {font_text}")
 
 @app.on_message(filters.command("filter", prefixes=".") & filters.me)
